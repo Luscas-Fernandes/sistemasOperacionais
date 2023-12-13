@@ -24,7 +24,7 @@ void print_RL(FILE *target_pointer, char **command, int **need, int **allocation
 
 
 // Banker Functions
-int request_resources(FILE *target_pointer, char **command, int **need, int **allocation, int *available, int number_of_resources);
+int request_resources(FILE *target_pointer, char **command, int **need, int **allocation, int *available, int number_of_resources, int *finish, int number_of_customers);
 int release_resources(FILE *target_pointer, char **command, int **need, int **allocation, int *available, int number_of_resources);
 void print_table(FILE *target_pointer, int **maximum, int **allocation, int **need, int *available, int number_of_customers, int number_of_resources, char **command);
 
@@ -61,8 +61,6 @@ int main(int argc, char** argv)
 	init_NOC_and_NOR_matrix(need, number_of_customers, number_of_resources); // Initializing allocation matrix
 	calc_need(need, maximum, allocation, number_of_customers, number_of_resources); // calculating need matrix
 
-	init_finish(number_of_customers, finish); // Initializing finish matrix
-
 	// command -> customer_number, resources, null (end of string)
 	char **command = (char **)malloc((3 + number_of_resources) * sizeof(char *));
 	int rq_result, rl_result;
@@ -74,7 +72,7 @@ int main(int argc, char** argv)
 		
 		if(strcmp(command[0], "RQ") == 0)
 		{
-			rq_result = request_resources(target_pointer, command, need, allocation, available, number_of_resources);
+			rq_result = request_resources(target_pointer, command, need, allocation, available, number_of_resources, finish, number_of_customers);
 			print_RQ(target_pointer, command, need, allocation, available, number_of_resources, rq_result);
 		}
 			
@@ -239,7 +237,7 @@ void read_commands(char **cmd, FILE *fp)
 //  0 cannot allocate resources, request > available
 //  1 can allocate_resources 
 
-int request_resources(FILE *target_pointer, char **command, int **need, int **allocation, int *available, int number_of_resources)
+int request_resources(FILE *target_pointer, char **command, int **need, int **allocation, int *available, int number_of_resources, int* finish, int number_of_customers)
 {
 	// Check if request > need, return -1 if it is
 	for(int i = 0; i < number_of_resources; i++)
@@ -253,9 +251,57 @@ int request_resources(FILE *target_pointer, char **command, int **need, int **al
 			return 0;
 
 
-	// Check if it is in an unsafe state to allocate, return -2 if it is
-	int unsafe = 1;
+	// Check if it is in a safe state to allocate, return -2 if it is unsafe, 1 if safe
+	int work[number_of_resources], todos_need, status_change, finish_count;
 
+	// Initializing finish matrix and initializing work
+	for(int i = 0; i < number_of_resources; i++) 
+		work[i] = available[i];
+	init_finish(number_of_customers, finish);
+
+	printf("\n");
+	finish_count = 0;
+	while (finish_count < number_of_customers)
+	{
+		status_change = 0;
+		for (int i = 0; i < number_of_customers; i++)
+		{
+			if (!finish[i])
+			{
+				int todos_need = 1; // Initialize to true for the current process
+				for (int j = 0; j < number_of_resources; j++)
+				{
+					if (need[i][j] > work[j])
+					{
+						todos_need = 0;
+						break;
+					}
+				}
+
+				if (todos_need)
+				{
+					for (int j = 0; j < number_of_resources; j++)
+					{
+						printf("work[%d] += allocation[%d][%d]: %d\n", j, i, j, allocation[i][j]);
+						printf("New work = %d\n", work[j]);
+						work[j] += allocation[i][j];
+					}
+					finish[i] = 1;
+					status_change = 1;
+					finish_count++;
+					printf("finish[%d] = %d, status_change = %d, finish_count = %d\n", i, finish[i], status_change, finish_count);
+				}
+			}
+		}
+		// If there is no status change for any finish[i], it is unsafe
+		if (!status_change)
+		{
+			printf("No status change\n");
+			return -2;
+		}
+	}
+
+	printf("Can Allocate!\n");
 	return 1;
 }
 
@@ -301,6 +347,13 @@ void print_RQ(FILE *target_pointer, char **command, int **need, int **allocation
 		for(int i = 0; i < number_of_resources; i++)
 			fprintf(target_pointer, "%d ", atoi(command[i + 2]));
 		fprintf(target_pointer, "\n");
+	}
+	else if(return_number == -2)
+	{
+		fprintf(target_pointer, "The customer %d request ", atoi(command[1]));
+		for(int i = 0; i < number_of_resources; i++)
+			fprintf(target_pointer, "%d ", atoi(command[i + 2]));
+		fprintf(target_pointer, "was denied because result in an unsafe state\n");
 	}
 }
 
