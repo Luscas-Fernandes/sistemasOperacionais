@@ -401,6 +401,7 @@ void print_table(FILE *target_pointer, int **maximum, int **allocation, int **ne
 				fprintf(target_pointer, "%d ", allocation[i][j]);
 			for(int i = 0; i < identation_alloc; i++)
 				fprintf(target_pointer, " ");
+
 			fprintf(target_pointer, "| ");
 			for(int j = 0; j < number_of_resources; j++)
 				fprintf(target_pointer, "%d ", need[i][j]);
@@ -408,21 +409,46 @@ void print_table(FILE *target_pointer, int **maximum, int **allocation, int **ne
 		}
 	}
 
-	else
+	else if(number_of_resources == 5)
 	{
-		identation_max = number_of_resources * 2 - 7;
+		identation_max = number_of_resources * 2 - 8;
+		identation_alloc = 11 - number_of_resources * 2;
 		
 		fprintf(target_pointer, "MAXIMUM");
 		for(int i = 0; i < identation_max; i++)
 			fprintf(target_pointer, " ");
-		fprintf(target_pointer, "| ");
+		fprintf(target_pointer, " | ALLOCATION | NEED\n");
+		for(int i = 0; i < number_of_customers; i++)
+		{       
+			for(int j = 0; j < number_of_resources; j++)
+				fprintf(target_pointer, "%d ", maximum[i][j]);
+			fprintf(target_pointer, "| ");
+			for(int j = 0; j < number_of_resources; j++)
+				fprintf(target_pointer, "%d ", allocation[i][j]);
+			for(int i = 0; i < identation_alloc; i++)
+				fprintf(target_pointer, " ");
 
-		fprintf(target_pointer, "ALLOCATION ");
+			fprintf(target_pointer, "| ");
+			for(int j = 0; j < number_of_resources; j++)
+				fprintf(target_pointer, "%d ", need[i][j]);
+			fprintf(target_pointer, "\n");
+		}
+	}
+
+	else if(number_of_resources > 5)
+	{
+		identation_max = number_of_resources * 2 - 8;
+		identation_alloc = number_of_resources * 2 - 11;
+		
+		fprintf(target_pointer, "MAXIMUM");
+		for(int i = 0; i < identation_max; i++)
+			fprintf(target_pointer, " ");
+
+		fprintf(target_pointer, " | ALLOCATION");
 		for(int i = 0; i < identation_alloc; i++)
 			fprintf(target_pointer, " ");
-		fprintf(target_pointer, "| ");
 
-		fprintf(target_pointer, "NEED\n");
+		fprintf(target_pointer, " | NEED\n");
 		for(int i = 0; i < number_of_customers; i++)
 		{       
 			for(int j = 0; j < number_of_resources; j++)
