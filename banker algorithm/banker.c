@@ -259,7 +259,7 @@ int request_resources(FILE *target_pointer, char **command, int **need, int **al
 		work[i] = available[i];
 	init_finish(number_of_customers, finish);
 
-	printf("\n");
+	//printf("\n");
 	finish_count = 0;
 	while (finish_count < number_of_customers)
 	{
@@ -282,26 +282,26 @@ int request_resources(FILE *target_pointer, char **command, int **need, int **al
 				{
 					for (int j = 0; j < number_of_resources; j++)
 					{
-						printf("work[%d] += allocation[%d][%d]: %d\n", j, i, j, allocation[i][j]);
-						printf("New work = %d\n", work[j]);
+						//printf("work[%d] += allocation[%d][%d]: %d\n", j, i, j, allocation[i][j]);
+						//printf("New work = %d\n", work[j]);
 						work[j] += allocation[i][j];
 					}
 					finish[i] = 1;
 					status_change = 1;
 					finish_count++;
-					printf("finish[%d] = %d, status_change = %d, finish_count = %d\n", i, finish[i], status_change, finish_count);
+					//printf("finish[%d] = %d, status_change = %d, finish_count = %d\n", i, finish[i], status_change, finish_count);
 				}
 			}
 		}
 		// If there is no status change for any finish[i], it is unsafe
 		if (!status_change)
 		{
-			printf("No status change\n");
+			//printf("No status change\n");
 			return -2;
 		}
 	}
 
-	printf("Can Allocate!\n");
+	//printf("Can Allocate!\n");
 	return 1;
 }
 
@@ -382,19 +382,61 @@ void print_RL(FILE *target_pointer, char **command, int **need, int **allocation
 
 void print_table(FILE *target_pointer, int **maximum, int **allocation, int **need, int *available, int number_of_customers, int number_of_resources, char **command) 
 {
-	fprintf(target_pointer, "MAXIMUM\t| ALLOCATION | NEED\n");
-	for(int i = 0; i < number_of_customers; i++)
-	{       
-		for(int j = 0; j < number_of_resources; j++)
-			fprintf(target_pointer, "%d ", maximum[i][j]);
-		fprintf(target_pointer, "\t| ");
-		for(int j = 0; j < number_of_resources; j++)
-			fprintf(target_pointer, "%d ", allocation[i][j]);
-		fprintf(target_pointer, "\t | ");
-		for(int j = 0; j < number_of_resources; j++)
-			fprintf(target_pointer, "%d ", need[i][j]);
-		fprintf(target_pointer, "\n");
+	int identation_max, identation_alloc;
+	if(number_of_resources <= 4)
+	{
+		identation_max = 8 - number_of_resources * 2;
+		identation_alloc = 11 - number_of_resources * 2;
+
+		fprintf(target_pointer, "MAXIMUM | ALLOCATION | NEED\n");
+		for(int i = 0; i < number_of_customers; i++)
+		{       
+			for(int j = 0; j < number_of_resources; j++)
+				fprintf(target_pointer, "%d ", maximum[i][j]);
+			for(int i = 0; i < identation_max; i++)
+				fprintf(target_pointer, " ");
+
+			fprintf(target_pointer, "| ");
+			for(int j = 0; j < number_of_resources; j++)
+				fprintf(target_pointer, "%d ", allocation[i][j]);
+			for(int i = 0; i < identation_alloc; i++)
+				fprintf(target_pointer, " ");
+			fprintf(target_pointer, "| ");
+			for(int j = 0; j < number_of_resources; j++)
+				fprintf(target_pointer, "%d ", need[i][j]);
+			fprintf(target_pointer, "\n");
+		}
 	}
+
+	else
+	{
+		identation_max = number_of_resources * 2 - 7;
+		
+		fprintf(target_pointer, "MAXIMUM");
+		for(int i = 0; i < identation_max; i++)
+			fprintf(target_pointer, " ");
+		fprintf(target_pointer, "| ");
+
+		fprintf(target_pointer, "ALLOCATION ");
+		for(int i = 0; i < identation_alloc; i++)
+			fprintf(target_pointer, " ");
+		fprintf(target_pointer, "| ");
+
+		fprintf(target_pointer, "NEED\n");
+		for(int i = 0; i < number_of_customers; i++)
+		{       
+			for(int j = 0; j < number_of_resources; j++)
+				fprintf(target_pointer, "%d ", maximum[i][j]);
+			fprintf(target_pointer, "| ");
+			for(int j = 0; j < number_of_resources; j++)
+				fprintf(target_pointer, "%d ", allocation[i][j]);
+			fprintf(target_pointer, "| ");
+			for(int j = 0; j < number_of_resources; j++)
+				fprintf(target_pointer, "%d ", need[i][j]);
+			fprintf(target_pointer, "\n");
+		}
+	}
+
 	fprintf(target_pointer, "AVAILABLE ");
 	for(int i = 0; i < number_of_resources; i++)
 		fprintf(target_pointer, "%d ", available[i]);
