@@ -1,2 +1,3 @@
 # SistemasOperacionais
- cadeira de SO (operational systems)
+
+Cadeira de SO do terceiro período
